@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>battcn websocket</title>
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js" ></script>
+</head>
+<body>
+
+<label for="message_content">chat room</label><textarea id="message_content" readonly="readonly" cols="57" rows="10">
+
+</textarea>
+
+<br/>
+
+
+<label for="in_user_name">username &nbsp;</label><input id="in_user_name" value=""/>
+<button id="btn_join">join </button>
+<button id="btn_exit">exit </button>
+
+<br/><br/>
+
+<label for="in_room_msg">group push &nbsp;</label><input id="in_room_msg" value=""/>
+<button id="btn_send_all">send message</button>
+
+
+<br/><br/><br/>
+
+chat room
+<br/>
+<label for="in_sender">sender &nbsp;</label><input id="in_sender" value=""/><br/>
+<label for="in_receive">receive &nbsp;</label><input id="in_receive" value=""/><br/>
+<label for="in_point_message">point_message &nbsp;</label><input id="in_point_message" value=""/><button id="btn_send_point">send_point</button>
+
+</body>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        var urlPrefix ='ws://ksudi-soms-gateway:9999/levin/wechat/';
+        var ws = null;
+        $('#btn_join').click(function(){
+            var username = $('#in_user_name').val();
+            var url = urlPrefix + username;
+            ws = new WebSocket(url);
+            ws.onopen = function () {
+                console.log("open websocket connection...");
+            };
+            ws.onmessage = function(event){
+                //服务端发送的消息
+                $('#message_content').append(event.data+'\n');
+            };
+            ws.onclose = function(){
+                 $('#message_content').append('user ['+username+'] exit');
+                 console.log("close websocket...");
+            }
+        });
+        //客户端发送消息到服务器
+        $('#btn_send_all').click(function(){
+            var msg = $('#in_room_msg').val();
+            if(ws){
+                ws.send(msg);
+            }
+        });
+        // 退出聊天室
+        $('#btn_exit').click(function(){
+            if(ws){
+                ws.close();
+            }
+        });
+
+        $("#btn_send_point").click(function() {
+           var sender = $("#in_sender").val();
+           var receive = $("#in_receive").val();
+            var message = $("#in_point_message").val();
+           $.get("/chat-room/"+sender+"/to/"+receive+"?message="+message,function() {
+              alert("send success...")
+           })
+        })
+
+    })
+</script>
+
+</html>
